@@ -1,10 +1,12 @@
-from json import dump
 from sys import stdin, stdout
 
-from sklearn.metrics import root_mean_squared_error
+from tqdm import trange
 import numpy as np
+import pandas as pd
 
-from icmpp import cube, exp2_m1, eye, full, icm, log2_1p, weigh_output
+from icmpp import DEFAULT_COUNT, eye, weigh_output
+
+BASELINE = eye
 
 
 def main():
@@ -12,27 +14,49 @@ def main():
     inputs = data['inputs']
     outputs = data['outputs']
     weights = data['weights']
-    icm_ = data['icm']
+    icm = data['icm']
+    baseline = BASELINE(inputs)
     targets = weigh_output(outputs, weights)
-    baselines = {
-        'FULL': full(inputs),
-        'EYE': eye(inputs),
-        'ICM': icm_,
-        'ICM (EXP2-M1)': icm(inputs, progress=True, weight=exp2_m1),
-        'ICM (LOG2-1P)': icm(inputs, progress=True, weight=log2_1p),
-        'ICM (SQRT)': icm(inputs, progress=True, weight=np.sqrt),
-        'ICM (CBRT)': icm(inputs, progress=True, weight=np.cbrt),
-        'ICM (SQUARE)': icm(inputs, progress=True, weight=np.square),
-        'ICM (CUBE)': icm(inputs, progress=True, weight=cube),
-    }
-    losses = {}
+    icm_outputs = weigh_output(icm, weights)
+    baseline_outputs = weigh_output(baseline, weights)
+    data = []
 
-    for key, value in baselines.items():
-        value = weigh_output(value, weights)
-        loss = root_mean_squared_error(targets, value)
-        losses[key] = loss
+    for i in trange(len(inputs)):
+        count = np.count_nonzero(inputs[i])
 
-    dump(losses, stdout)
+        for j in trange(DEFAULT_COUNT, leave=False):
+            if not inputs[i, j]:
+                assert not targets[i, j]
+                assert not icm_outputs[i, j]
+                assert not baseline_outputs[i, j]
+
+                continue
+
+            datum_1 = {
+                'event': i,
+                'count': count,
+                'player': j,
+                'input': inputs[i, j],
+                'target': targets[i, j],
+                'algorithm': 'ICM',
+                'output': icm_outputs[i, j],
+            }
+            datum_2 = {
+                'event': i,
+                'count': count,
+                'player': j,
+                'input': inputs[i, j],
+                'target': targets[i, j],
+                'algorithm': 'BASELINE',
+                'output': baseline_outputs[i, j],
+            }
+
+            data.append(datum_1)
+            data.append(datum_2)
+
+    df = pd.DataFrame(data)
+
+    df.to_csv(stdout)
 
 
 if __name__ == '__main__':

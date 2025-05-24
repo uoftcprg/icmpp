@@ -4,7 +4,7 @@ from sklearn.preprocessing import normalize
 import numpy as np
 
 IGNORE_INDEX = -100
-DEFAULT_COUNT = 9
+DEFAULT_COUNT = 10
 
 
 def normalize_input(input_):

@@ -23,20 +23,8 @@ Combine, deduplicate, normalize, and pad the WSOP dataset.
 python scripts/data.py scripts/wsop.com.json scripts/pokernews.json > scripts/data.npz
 ```
 
-Evaluate baselines.
+Evaluate ICM and a baseline.
 
 ```console
-python scripts/baselines.py < scripts/data.npz > scripts/baselines.json
-```
-
-Train an AI model.
-
-```console
-python scripts/learn.py sklearn.linear_model.LinearRegression < scripts/data.npz > scripts/learn.pt
-```
-
-Plot results.
-
-```console
-python scripts/plot.py scripts/baselines.json scripts/learn.pt
+python scripts/baselines.py < scripts/data.npz > scripts/baselines.csv
 ```
