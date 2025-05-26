@@ -1,0 +1,1 @@
+{"end_of_day_count": 2500, "player_count": 33478, "baseline_squared_error": {"mean": 0.0067650036439808325, "standard_error": 8.511168677435739e-05}, "icm_squared_error": {"mean": 0.004298462612132484, "standard_error": 5.34249730998396e-05}, "one_sided_paired_ttest": {"statistic": -40.77910854914719, "pvalue": 0.0, "df": 33477}}

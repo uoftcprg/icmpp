@@ -1,11 +1,10 @@
 from functools import partial
 from json import dump
 from sys import argv, stdout
+from warnings import warn
 
 from tqdm import tqdm
 import pandas as pd
-
-from icmpp import DEFAULT_COUNT
 
 RESULTS_PATH = argv[1]
 CHIPCOUNTS_PATH = argv[2]
@@ -54,13 +53,19 @@ def get_payouts(df):
     return dict(payouts)
 
 
-def get_weight(payouts, tid, count):
-    weight = []
+def get_payout(payouts, tid, count):
+    payout = []
 
     for i in range(count):
-        weight.append(payouts[tid].get(i, 0))
+        payout.append(payouts[tid].get(i, 0))
 
-    return weight
+    if payout != sorted(payout, reverse=True):
+        warn(f'Unsorted payouts {payout}')
+
+    while payout and not payout[-1]:
+        payout.pop()
+
+    return payout
 
 
 def help_get_data(ranks, payouts, df):
@@ -72,27 +77,24 @@ def help_get_data(ranks, payouts, df):
     assert chipstacks == sorted(chipstacks, reverse=True)
 
     if 0 in chipstacks:
-        input_ = chipstacks[:chipstacks.index(0)]
+        chip_count = chipstacks[:chipstacks.index(0)]
     else:
-        input_ = chipstacks
+        chip_count = chipstacks
 
-    players = list(map(normalize_str, df['player']))[:len(input_)]
-    label = list(map(ranks.get(tid, {}).get, players))
+    players = list(map(normalize_str, df['player']))[:len(chip_count)]
+    place = list(map(ranks.get(tid, {}).get, players))
 
-    assert len(input_) == len(label)
+    assert len(chip_count) == len(place)
 
     if (
-            set(label) != set(range(len(label)))
-            or not 2 <= len(label) <= DEFAULT_COUNT
-            or tid not in payouts
+            set(place) == set(range(len(place)))
+            and len(place) >= 2
+            and tid in payouts
+            and (payout := get_payout(payouts, tid, len(place)))
     ):
-        datum = None
+        datum = chip_count, place, payout
     else:
-        weight = get_weight(payouts, tid, len(label))
-
-        assert len(label) == len(weight)
-
-        datum = input_, label, weight
+        datum = None
 
     return datum
 
@@ -116,16 +118,16 @@ def main():
     ranks = get_ranks(results_df)
     payouts = get_payouts(results_df)
     data = get_data(ranks, payouts, chipcounts_df)
-    inputs = []
-    labels = []
-    weights = []
+    chip_counts = []
+    places = []
+    payouts = []
 
-    for input_, label, weight in data:
-        inputs.append(input_)
-        labels.append(label)
-        weights.append(weight)
+    for chip_count, place, payout in data:
+        chip_counts.append(chip_count)
+        places.append(place)
+        payouts.append(payout)
 
-    data = {'inputs': inputs, 'labels': labels, 'weights': weights}
+    data = {'chip_counts': chip_counts, 'places': places, 'payouts': payouts}
 
     dump(data, stdout)
 
