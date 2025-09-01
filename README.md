@@ -1,6 +1,6 @@
 # icmpp
 
-This work explores different methodologies of assessing the utility value of poker tournaments.
+This work explores different methodologies for assessing the utility value of poker tournaments.
 
 ## Instructions
 
