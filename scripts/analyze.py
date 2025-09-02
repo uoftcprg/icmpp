@@ -4,12 +4,12 @@ from tqdm import trange
 import numpy as np
 import pandas as pd
 
-from icmpp import icm, mcicm
+from icmpp import ebcm, icm, mcebcm, mcicm
 
-ICM_COUNT_LIMIT = 10
-MCICM_STDERR_TOLERANCE = 0.001
-MCICM_MIN_COUNT = 100
-MCICM_MAX_COUNT = 10000
+MC_COUNT_LIMIT = 10
+MC_STDERR_TOLERANCE = 0.001
+MC_MIN_COUNT = 100
+MC_MAX_COUNT = 10000
 
 
 def main():
@@ -47,20 +47,28 @@ def main():
 
         assert 2 <= count
 
-        if count <= ICM_COUNT_LIMIT:
+        if count <= MC_COUNT_LIMIT:
             icms = icm(chip_percentages[i], payout_percentages[i])
+            ebcms = ebcm(chip_percentages[i], payout_percentages[i])
         else:
             icms, *_ = mcicm(
                 chip_percentages[i],
                 payout_percentages[i],
-                MCICM_STDERR_TOLERANCE,
-                MCICM_MIN_COUNT,
-                MCICM_MAX_COUNT,
+                MC_STDERR_TOLERANCE,
+                MC_MIN_COUNT,
+                MC_MAX_COUNT,
+            )
+            ebcms, *_ = mcebcm(
+                chip_percentages[i],
+                payout_percentages[i],
+                MC_STDERR_TOLERANCE,
+                MC_MIN_COUNT,
+                MC_MAX_COUNT,
             )
 
-        assert chip_percentages[i].shape == icms.shape
-        assert (icms > 0).all()
-        assert np.isclose(icms.sum(), 1)
+        assert chip_percentages[i].shape == icms.shape == ebcms.shape
+        assert (icms > 0).all() and (ebcms > 0).all()
+        assert np.isclose(icms.sum(), 1) and np.isclose(ebcms.sum(), 1)
 
         for j in trange(count, leave=False):
             datum_1 = {
@@ -81,9 +89,19 @@ def main():
                 'algorithm': 'ICM',
                 'output': icms[j],
             }
+            datum_3 = {
+                'end_of_day': i,
+                'count': count,
+                'player': j,
+                'chip_percentage': chip_percentages[i][j],
+                'target': targets[i][j],
+                'algorithm': 'EBCM',
+                'output': ebcms[j],
+            }
 
             data.append(datum_1)
             data.append(datum_2)
+            data.append(datum_3)
 
     df = pd.DataFrame(data)
 

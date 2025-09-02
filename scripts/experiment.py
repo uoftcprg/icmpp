@@ -13,9 +13,10 @@ def main():
         df.loc[df['algorithm'] == 'BASELINE']['squared_error']
     )
     icm_squared_errors = df.loc[df['algorithm'] == 'ICM']['squared_error']
+    ebcm_squared_errors = df.loc[df['algorithm'] == 'EBCM']['squared_error']
     one_sided_paired_ttest_result = ttest_rel(
+        ebcm_squared_errors,
         icm_squared_errors,
-        baseline_squared_errors,
         alternative='less',
     )
     data = {
@@ -28,6 +29,10 @@ def main():
         'icm_squared_error': {
             'mean': icm_squared_errors.mean(),
             'standard_error': sem(icm_squared_errors),
+        },
+        'ebcm_squared_error': {
+            'mean': ebcm_squared_errors.mean(),
+            'standard_error': sem(ebcm_squared_errors),
         },
         'one_sided_paired_ttest': {
             'statistic': one_sided_paired_ttest_result.statistic,

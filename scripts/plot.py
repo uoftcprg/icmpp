@@ -16,10 +16,10 @@ def main():
 
     ax = sns.barplot(df, x='algorithm', y='squared_error', hue='algorithm')
 
-    ax.set_xticklabels(['Baseline', 'ICM'])
+    ax.set_xticklabels(['Baseline', 'ICM', 'EBCM'])
     plt.xlabel('Algorithm')
     plt.ylabel('MSE')
-    plt.title('The MSEs of the baseline and ICM')
+    plt.title('The MSEs of the baseline, ICM, and EBCM')
     plt.tight_layout()
     plt.savefig(RESULTS_PATH)
 

@@ -34,6 +34,7 @@ Perform statistical testing.
 ```console
 python scripts/experiment.py < scripts/analyze.csv > scripts/experiment.json
 python scripts/experiment2.py < scripts/analyze.csv > scripts/experiment2.json
+python scripts/experiment3.py < scripts/analyze.csv > scripts/experiment3.json
 ```
 
 Plot results.
@@ -41,6 +42,7 @@ Plot results.
 ```console
 python scripts/plot.py figures/results.pdf < scripts/analyze.csv
 python scripts/plot2.py figures/results2.pdf < scripts/analyze.csv
+python scripts/plot3.py figures/results3.pdf < scripts/analyze.csv
 ```
 
 Citing
